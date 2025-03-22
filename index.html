@@ -160,12 +160,13 @@
         /* Partikel-Effekte */
         .particle {
             position: absolute;
-            width: 5px;
-            height: 5px;
+            width: 8px; /* Größer gemacht */
+            height: 8px;
             background: gold;
             border-radius: 50%;
             pointer-events: none;
-            animation: particleFade 1s ease forwards;
+            z-index: 10; /* Sicherstellen, dass Partikel über den Symbolen sind */
+            animation: particleFade 1.5s ease forwards; /* Animation langsamer */
         }
 
         @keyframes particleFade {
@@ -354,23 +355,19 @@
 
         // Partikel-Effekte
         function createParticles(element) {
-            const rect = element.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-
+            // Partikel relativ zum shape-box positionieren
             for (let i = 0; i < 10; i++) {
                 const particle = document.createElement('div');
                 particle.className = 'particle';
-                document.body.appendChild(particle);
+                element.appendChild(particle); // Partikel als Kind des shape-box
 
                 const angle = Math.random() * Math.PI * 2;
                 const distance = Math.random() * 50 + 20;
-                const x = centerX + Math.cos(angle) * distance;
-                const y = centerY + Math.sin(angle) * distance;
 
-                particle.style.left = `${centerX}px`;
-                particle.style.top = `${centerY}px`;
-                particle.style.transform = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px)`;
+                // Position relativ zum Zentrum des shape-box
+                particle.style.left = '50%';
+                particle.style.top = '50%';
+                particle.style.transform = `translate(-50%, -50%) translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px)`;
             }
         }
 
@@ -462,7 +459,8 @@
                     el.appendChild(specialEl);
                 }
                 topRow.appendChild(el);
-                createParticles(el); // Partikel-Effekte
+                // Partikel erstellen, nachdem die Einflieganimation abgeschlossen ist
+                setTimeout(() => createParticles(el), 500);
             });
 
             const bottomRow = document.getElementById('bottomRow');
@@ -473,7 +471,7 @@
                 el.textContent = shape;
                 el.style.color = colors[Math.floor(Math.random() * colors.length)]; // Zufällige Farbe
                 bottomRow.appendChild(el);
-                createParticles(el); // Partikel-Effekte
+                setTimeout(() => createParticles(el), 500);
             });
 
             playSlideInSound(); // Sound für Einfliegen
