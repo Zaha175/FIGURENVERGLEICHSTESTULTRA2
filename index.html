@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symbolvergleichsspiel</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(to bottom, #e6f2ff, #cce0ff);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #000080;
+            font-weight: bold;
+            font-size: 2.5em;
+        }
+
+        #taskNumber {
+            margin-bottom: 10px;
+        }
+
+        .top-shapes-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: nowrap;
+            max-width: 660px;
+        }
+
+        .bottom-shapes-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: nowrap;
+        }
+
+        .shape-box {
+            width: 110px;
+            height: 110px;
+            border: 3px solid #000080;
+            margin: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #ffffcc;
+            font-size: 52px;
+            border-radius: 10px;
+            flex-basis: auto;
+            position: relative;
+            transition: transform 0.5s ease, background-color 0.3s ease;
+        }
+
+        .bottom-shapes-container .shape-box {
+            width: 110px;
+        }
+
+        .special-symbol {
+            position: absolute;
+            bottom: 5px;
+            font-size: 20px;
+            color: red;
+            animation: blink 1s infinite;
+        }
+
+        /* Einflieganimation für obere Symbole */
+        .top-shape {
+            animation: slideInFromLeft 0.5s ease forwards;
+        }
+
+        /* Einflieganimation für untere Symbole */
+        .bottom-shape {
+            animation: slideInFromRight 0.5s ease forwards;
+        }
+
+        /* Pulsieranimation für Symbole */
+        .shape-box {
+            animation: pulse 2s infinite;
+        }
+
+        /* Feedback-Animation für richtige/falsche Antwort */
+        .correct {
+            background-color: #90ee90 !important; /* Hellgrün */
+            animation: flash 0.3s;
+        }
+
+        .incorrect {
+            background-color: #ff6347 !important; /* Hellrot */
+            animation: flash 0.3s;
+        }
+
+        @keyframes slideInFromLeft {
+            0% {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            100% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInFromRight {
+            0% {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            100% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes blink {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes flash {
+            0% {
+                background-color: #ffffcc;
+            }
+            50% {
+                background-color: inherit;
+            }
+            100% {
+                background-color: #ffffcc;
+            }
+        }
+
+        /* Partikel-Effekte */
+        .particle {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background: gold;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleFade 1s ease forwards;
+        }
+
+        @keyframes particleFade {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0);
+            }
+        }
+
+        .instruction {
+            margin: 20px auto;
+            font-size: 16px;
+            max-width: 600px;
+            line-height: 1.5;
+        }
+
+        .buttons {
+            margin-top: 10px;
+        }
+
+        .buttons button {
+            width: 70px;
+            height: 70px;
+            margin: 0 25px;
+            font-size: 0;
+            border: 2px solid #000;
+            cursor: pointer;
+            outline: none;
+            border-radius: 50%;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .buttons button:hover {
+            transform: scale(1.1);
+        }
+
+        .green-button {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230f0'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+        }
+
+        .red-button {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23f00'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3C/svg%3E");
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 20px;
+            border: 3px solid #000080;
+            border-radius: 10px;
+            background-color: #fff;
+            box-shadow: 3px 3px 5px rgba(0,0,0,0.2);
+        }
+
+        #restartButton {
+            display: none;
+            margin-top: 20px;
+            font-size: 14px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        #startScreen {
+            margin-top: 20px;
+        }
+
+        #testContainer {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Symbolvergleichsspiel</h1>
+
+    <div id="startScreen">
+        <p>Bitte wählen Sie die Anzahl der Aufgaben:</p>
+        <label><input type="radio" name="taskCount" value="10" checked> 10 Aufgaben</label>
+        <label><input type="radio" name="taskCount" value="20"> 20 Aufgaben</label>
+        <label><input type="radio" name="taskCount" value="30"> 30 Aufgaben</label>
+        <label><input type="radio" name="taskCount" value="40"> 40 Aufgaben</label>
+        <br><br>
+        <p>Bitte wählen Sie die Schwierigkeitsstufe:</p>
+        <label><input type="radio" name="difficulty" value="easy" checked> Einfach (1 Sonderzeichen)</label>
+        <label><input type="radio" name="difficulty" value="medium"> Mittel (2 Sonderzeichen)</label>
+        <label><input type="radio" name="difficulty" value="hard"> Schwer (3 Sonderzeichen)</label>
+        <br><br>
+        <button id="startButton">Start</button>
+    </div>
+
+    <div id="testContainer">
+        <div id="taskNumber"></div>
+
+        <div class="top-shapes-container" id="topRow"></div>
+
+        <div class="bottom-shapes-container" id="bottomRow"></div>
+
+        <div class="instruction">
+            Klicken Sie bei Übereinstimmung den grünen Button an!<br>
+            Im anderen Fall klicken Sie den roten Button an!<br>
+            Achtung: Wenn das untere Symbol mit einem der oberen Symbole übereinstimmt, ist die Antwort normalerweise Ja (grün). Aber wenn das Sonderzeichen >= unter dem passenden oberen Symbol erscheint, sind die Symbole nicht gleich, und die Antwort ist Nein (rot)!
+        </div>
+
+        <div class="buttons">
+            <button id="yesButton" class="green-button"><span>Ja</span></button>
+            <button id="noButton" class="red-button"><span>Nein</span></button>
+        </div>
+
+        <hr style="margin-top: 20px; width: 80%;">
+
+        <div id="result"></div>
+        <button id="restartButton">NEU STARTEN?</button>
+    </div>
+
+    <script>
+        // Symbolpool basierend auf dem Bild
+        const symbolPool = ['*', '||', '===', '+', '[]'];
+        const specialSymbol = '>='; // Das Sonderzeichen
+
+        // Zufällige Farben für Symbole
+        const colors = ['#ff4500', '#00ced1', '#ff69b4', '#32cd32', '#ffa500', '#6a5acd'];
+
+        // Audio-Kontext
+        let audioContext;
+        try {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+            console.error('AudioContext nicht unterstützt:', e);
+        }
+
+        // Sound für Symbole einfliegen
+        function playSlideInSound() {
+            if (!audioContext) return;
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.2);
+        }
+
+        // Sound für richtige Antwort
+        function playCorrectSound() {
+            if (!audioContext) return;
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.type = 'triangle';
+            oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
+
+        // Sound für falsche Antwort
+        function playIncorrectSound() {
+            if (!audioContext) return;
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(220, audioContext.currentTime);
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
+
+        // Partikel-Effekte
+        function createParticles(element) {
+            const rect = element.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            for (let i = 0; i < 10; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                document.body.appendChild(particle);
+
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 50 + 20;
+                const x = centerX + Math.cos(angle) * distance;
+                const y = centerY + Math.sin(angle) * distance;
+
+                particle.style.left = `${centerX}px`;
+                particle.style.top = `${centerY}px`;
+                particle.style.transform = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px)`;
+            }
+        }
+
+        // Globale Variablen
+        let tasks = [];
+        let currentTaskIndex = 0;
+        let results = [];
+        let startTime = null;
+        let totalTasks = 10;
+        let difficulty = 'easy'; // Standard: Einfach
+
+        document.getElementById('startButton').addEventListener('click', startTest);
+
+        function startTest() {
+            const radios = document.getElementsByName('taskCount');
+            for (const r of radios) {
+                if (r.checked) {
+                    totalTasks = parseInt(r.value);
+                    break;
+                }
+            }
+
+            const difficultyRadios = document.getElementsByName('difficulty');
+            for (const r of difficultyRadios) {
+                if (r.checked) {
+                    difficulty = r.value;
+                    break;
+                }
+            }
+
+            tasks = generateTasks(totalTasks);
+
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('testContainer').style.display = 'flex';
+
+            currentTaskIndex = 0;
+            results = [];
+            showTask(currentTaskIndex);
+        }
+
+        function generateTasks(count) {
+            const generatedTasks = [];
+            for (let i = 0; i < count; i++) {
+                let topShapes = [];
+                while (topShapes.length < 5) {
+                    const sym = symbolPool[Math.floor(Math.random() * symbolPool.length)];
+                    if (!topShapes.includes(sym)) {
+                        topShapes.push(sym);
+                    }
+                }
+                const bottomShape = symbolPool[Math.floor(Math.random() * symbolPool.length)];
+
+                // Anzahl der Sonderzeichen basierend auf Schwierigkeitsstufe
+                let specialSymbolPositions = [];
+                let numSpecialSymbols;
+                if (difficulty === 'easy') numSpecialSymbols = 1;
+                else if (difficulty === 'medium') numSpecialSymbols = 2;
+                else numSpecialSymbols = 3;
+
+                while (specialSymbolPositions.length < numSpecialSymbols) {
+                    const pos = Math.floor(Math.random() * 5);
+                    if (!specialSymbolPositions.includes(pos)) {
+                        specialSymbolPositions.push(pos);
+                    }
+                }
+
+                generatedTasks.push({ topShapes, bottomShapes: [bottomShape], specialSymbolPositions });
+            }
+            return generatedTasks;
+        }
+
+        function showTask(index) {
+            const task = tasks[index];
+
+            document.getElementById('taskNumber').textContent = `Aufgabe ${index + 1} von ${tasks.length}`;
+
+            const topRow = document.getElementById('topRow');
+            topRow.innerHTML = '';
+
+            task.topShapes.forEach((shape, i) => {
+                const el = document.createElement('div');
+                el.className = 'shape-box top-shape';
+                el.textContent = shape;
+                el.style.color = colors[Math.floor(Math.random() * colors.length)]; // Zufällige Farbe
+                if (task.specialSymbolPositions.includes(i)) {
+                    const specialEl = document.createElement('div');
+                    specialEl.className = 'special-symbol';
+                    specialEl.textContent = specialSymbol;
+                    el.appendChild(specialEl);
+                }
+                topRow.appendChild(el);
+                createParticles(el); // Partikel-Effekte
+            });
+
+            const bottomRow = document.getElementById('bottomRow');
+            bottomRow.innerHTML = '';
+            task.bottomShapes.forEach(shape => {
+                const el = document.createElement('div');
+                el.className = 'shape-box bottom-shape';
+                el.textContent = shape;
+                el.style.color = colors[Math.floor(Math.random() * colors.length)]; // Zufällige Farbe
+                bottomRow.appendChild(el);
+                createParticles(el); // Partikel-Effekte
+            });
+
+            playSlideInSound(); // Sound für Einfliegen
+
+            startTime = Date.now();
+        }
+
+        function nextTask() {
+            currentTaskIndex++;
+            if (currentTaskIndex < tasks.length) {
+                showTask(currentTaskIndex);
+            } else {
+                showResults();
+            }
+        }
+
+        function evaluateAnswer(userSaysYes) {
+            const endTime = Date.now();
+            const task = tasks[currentTaskIndex];
+
+            // Prüfen, ob das untere Symbol in den oberen Symbolen vorkommt
+            let correct = task.topShapes.includes(task.bottomShapes[0]);
+
+            // Sonderregel: Wenn das untere Symbol mit einem oberen Symbol übereinstimmt und ein Sonderzeichen unter diesem oberen Symbol ist
+            const bottomSymbol = task.bottomShapes[0];
+            const matchingSymbolIndex = task.topShapes.indexOf(bottomSymbol);
+            const specialSymbolUnderMatchingSymbol = matchingSymbolIndex !== -1 && task.specialSymbolPositions.includes(matchingSymbolIndex);
+
+            if (matchingSymbolIndex !== -1 && specialSymbolUnderMatchingSymbol) {
+                correct = false;
+            }
+
+            const userCorrect = (correct && userSaysYes) || (!correct && !userSaysYes);
+            const reactionTime = (endTime - startTime) / 1000;
+
+            // Feedback-Animation und Sound für die Antwort
+            const bottomShapeBox = document.querySelector('.bottom-shape');
+            if (userCorrect) {
+                bottomShapeBox.classList.add('correct');
+                playCorrectSound();
+            } else {
+                bottomShapeBox.classList.add('incorrect');
+                playIncorrectSound();
+            }
+
+            results.push({ correct: userCorrect, reactionTime: reactionTime });
+
+            // Kurz warten, damit die Animation und der Sound abgespielt werden
+            setTimeout(nextTask, 300);
+        }
+
+        function showResults() {
+            const correctCount = results.filter(r => r.correct).length;
+            const correctPercent = (correctCount / tasks.length) * 100;
+
+            const avgTime = results.reduce((sum, r) => sum + r.reactionTime, 0) / tasks.length;
+
+            let baseRating = '';
+            if (correctPercent >= 90) baseRating = 'sehr gut';
+            else if (correctPercent >= 80) baseRating = 'gut';
+            else if (correctPercent >= 70) baseRating = 'befriedigend';
+            else if (correctPercent >= 60) baseRating = 'ausreichend';
+            else baseRating = 'nicht bestanden';
+
+            let timeOver = avgTime - 2.5;
+            let timePenaltyPercent = 0;
+            if (timeOver > 0) {
+                timePenaltyPercent = timeOver * 10;
+            }
+
+            const ratingMap = { 'sehr gut': 5, 'gut': 4, 'befriedigend': 3, 'ausreichend': 2, 'nicht bestanden': 1 };
+            let ratingValue = ratingMap[baseRating];
+            let stepsDown = Math.floor(timePenaltyPercent / 10);
+            ratingValue -= stepsDown;
+            if (ratingValue < 1) ratingValue = 1;
+
+            const finalRating = Object.keys(ratingMap).find(key => ratingMap[key] === ratingValue);
+
+            document.getElementById('result').textContent =
+                `Ergebnis: ${Math.round(correctPercent)}% richtig, Durchschnittszeit: ${avgTime.toFixed(2)} s, Bewertung: ${finalRating}`;
+
+            document.getElementById('yesButton').style.display = 'none';
+            document.getElementById('noButton').style.display = 'none';
+
+            const restartButton = document.getElementById('restartButton');
+            restartButton.style.display = 'inline-block';
+            restartButton.removeEventListener('click', restartTest);
+            restartButton.addEventListener('click', restartTest);
+        }
+
+        function restartTest() {
+            document.getElementById('testContainer').style.display = 'none';
+            document.getElementById('result').textContent = '';
+            document.getElementById('restartButton').style.display = 'none';
+
+            document.getElementById('yesButton').style.display = 'inline-block';
+            document.getElementById('noButton').style.display = 'inline-block';
+
+            document.getElementById('startScreen').style.display = 'block';
+        }
+
+        document.getElementById('yesButton').addEventListener('click', () => evaluateAnswer(true));
+        document.getElementById('noButton').addEventListener('click', () => evaluateAnswer(false));
+    </script>
+</body>
+</html>
